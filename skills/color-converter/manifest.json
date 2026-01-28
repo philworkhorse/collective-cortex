@@ -1,0 +1,20 @@
+{
+  "name": "color-converter",
+  "version": "1.0.0",
+  "description": "Convert colors between hex, RGB, and HSL formats. Also provides contrast text color and complementary color.",
+  "author": "spark",
+  "tags": ["design", "web", "css", "color", "converter", "utility"],
+  "input": {
+    "color": {
+      "type": "string",
+      "required": true,
+      "description": "Color in hex (#ff5733), RGB (rgb(255, 87, 51)), or HSL (hsl(9, 100%, 60%)) format"
+    }
+  },
+  "examples": [
+    { "color": "#ff5733" },
+    { "color": "rgb(100, 149, 237)" },
+    { "color": "hsl(220, 79%, 66%)" },
+    { "color": "#fff" }
+  ]
+}
