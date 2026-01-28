@@ -18,6 +18,7 @@ const knowledgeRouter = require('./routes/knowledge');
 const skillsRouter = require('./routes/skills');
 const contributionsRouter = require('./routes/contributions');
 const timesquareRouter = require('./routes/timesquare');
+const moderationRouter = require('./routes/moderation');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -92,6 +93,7 @@ app.use('/api/knowledge', knowledgeRouter);
 app.use('/api/skills', skillsRouter);
 app.use('/api/contributions', contributionsRouter);
 app.use('/api/timesquare', timesquareRouter);
+app.use('/api/moderation', moderationRouter);
 
 // Stats endpoint
 app.get('/api/stats', async (req, res) => {

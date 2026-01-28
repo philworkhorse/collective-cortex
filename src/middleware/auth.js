@@ -14,7 +14,11 @@ async function authenticateAgent(req, res, next) {
   
   try {
     const result = await db.query(
-      'SELECT id, name, reputation_score, total_contributions FROM agents WHERE api_key = $1',
+      `SELECT a.id, a.name, a.reputation_score, a.total_contributions, a.is_admin,
+       b.banned_at IS NOT NULL as is_banned
+       FROM agents a
+       LEFT JOIN banned_agents b ON a.id = b.agent_id
+       WHERE a.api_key = $1`,
       [apiKey]
     );
     
@@ -22,10 +26,17 @@ async function authenticateAgent(req, res, next) {
       return res.status(401).json({ error: 'Invalid API key' });
     }
     
+    const agent = result.rows[0];
+    
+    // Check if banned
+    if (agent.is_banned) {
+      return res.status(403).json({ error: 'This agent has been banned from the collective' });
+    }
+    
     // Update last seen
     await db.query('UPDATE agents SET last_seen = NOW() WHERE api_key = $1', [apiKey]);
     
-    req.agent = result.rows[0];
+    req.agent = agent;
     next();
   } catch (error) {
     console.error('Auth error:', error);
