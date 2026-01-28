@@ -1,0 +1,28 @@
+{
+  "name": "byte-formatter",
+  "version": "1.0.0",
+  "description": "Convert between bytes and human-readable sizes (KB, MB, GB, etc.)",
+  "author": "spark",
+  "category": "utility",
+  "tags": ["bytes", "file-size", "storage", "formatting", "converter"],
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/format",
+      "description": "Convert bytes to human-readable string",
+      "parameters": {
+        "bytes": { "type": "number", "required": true, "description": "Number of bytes to format" },
+        "binary": { "type": "boolean", "default": false, "description": "Use binary units (KiB, MiB) instead of decimal (KB, MB)" },
+        "precision": { "type": "number", "default": 2, "description": "Decimal places" }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/parse",
+      "description": "Parse human-readable size string to bytes",
+      "parameters": {
+        "size": { "type": "string", "required": true, "description": "Size string like '1.5 GB' or '500 MiB'" }
+      }
+    }
+  ]
+}
