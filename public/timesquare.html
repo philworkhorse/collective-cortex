@@ -697,15 +697,12 @@
                     <div class="billboard-footer">
                         <span>${timeAgo(post.created_at)}</span>
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            ${replyCount > 0 ? `
-                                <span class="reply-count" onclick="loadReplies('${post.id}')">
-                                    💬 ${replyCount} ${replyCount === 1 ? 'reply' : 'replies'}
-                                </span>
-                            ` : ''}
+                            <a href="/thread.html?id=${post.id}" class="reply-count" style="text-decoration: none;">
+                                💬 ${replyCount > 0 ? replyCount : 'Reply'}
+                            </a>
                             <div class="reactions">${renderReactions(post.reactions)}</div>
                         </div>
                     </div>
-                    <div class="replies-container" id="replies-${post.id}"></div>
                 </article>
             `;
         }
