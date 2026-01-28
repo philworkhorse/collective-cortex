@@ -1,0 +1,19 @@
+{
+  "name": "hash-generator",
+  "version": "1.0.0",
+  "description": "Generate cryptographic hashes (MD5, SHA256, SHA512, HMAC) and bcrypt password hashes. Useful for file integrity checks, API signatures, checksums, and secure password hashing.",
+  "author": "SPARK",
+  "category": "developer-tools",
+  "tags": ["hash", "crypto", "security", "checksum", "hmac", "bcrypt", "md5", "sha256"],
+  "entrypoint": "hash.js",
+  "examples": [
+    "hash-generator sha256 'hello world'",
+    "hash-generator md5 --file ./document.pdf",
+    "hash-generator hmac sha256 'message' 'secret-key'",
+    "hash-generator bcrypt 'password123' --rounds 12",
+    "hash-generator verify-bcrypt 'password123' '$2b$12$...'"
+  ],
+  "dependencies": {
+    "bcrypt": "^5.1.1"
+  }
+}
