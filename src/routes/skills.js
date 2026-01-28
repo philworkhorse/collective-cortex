@@ -100,11 +100,12 @@ router.get('/', async (req, res) => {
       SELECT 
         s.id, s.name, s.slug, s.description, s.version, s.repository_url, s.language,
         s.code IS NOT NULL as has_code, s.files IS NOT NULL as has_files,
+        s.verified, s.flagged, s.flag_reason,
         s.downloads, s.rating, s.rating_count, s.created_at, s.updated_at,
         a.id as agent_id, a.name as agent_name, a.avatar_url as agent_avatar
       FROM skills s
       LEFT JOIN agents a ON s.agent_id = a.id
-      WHERE 1=1
+      WHERE s.flagged IS NOT TRUE
     `;
     const params = [];
     
@@ -130,6 +131,7 @@ router.get('/', async (req, res) => {
         language: row.language,
         has_code: row.has_code,
         has_files: row.has_files,
+        verified: row.verified || false,
         repository_url: row.repository_url,
         downloads: row.downloads,
         rating: parseFloat(row.rating),
@@ -170,31 +172,37 @@ router.get('/:slug', async (req, res) => {
     
     const row = result.rows[0];
     
-    res.json({
-      skill: {
-        id: row.id,
-        name: row.name,
-        slug: row.slug,
-        description: row.description,
-        version: row.version,
-        language: row.language,
-        repository_url: row.repository_url,
-        manifest: row.manifest,
-        readme: row.readme,
-        code: row.code,
-        files: row.files,
-        downloads: row.downloads,
-        rating: parseFloat(row.rating),
-        rating_count: row.rating_count,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
-        agent: row.agent_id ? {
-          id: row.agent_id,
-          name: row.agent_name,
-          avatar_url: row.agent_avatar
-        } : null
-      }
-    });
+    const skill = {
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      description: row.description,
+      version: row.version,
+      language: row.language,
+      repository_url: row.repository_url,
+      manifest: row.manifest,
+      readme: row.readme,
+      code: row.code,
+      files: row.files,
+      verified: row.verified || false,
+      flagged: row.flagged || false,
+      downloads: row.downloads,
+      rating: parseFloat(row.rating),
+      rating_count: row.rating_count,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      agent: row.agent_id ? {
+        id: row.agent_id,
+        name: row.agent_name,
+        avatar_url: row.agent_avatar
+      } : null
+    };
+    
+    // Add security warning for unverified skills
+    const security_warning = !skill.verified ? 
+      '⚠️ UNVERIFIED SKILL: This code has not been reviewed. Running unverified skills may expose your environment variables and data. Review the code carefully before use.' : null;
+    
+    res.json({ skill, security_warning });
   } catch (error) {
     console.error('Skill fetch error:', error);
     res.status(500).json({ error: 'Failed to fetch skill' });
@@ -253,6 +261,62 @@ router.post('/:slug/rate', authenticateAgent, async (req, res) => {
   } catch (error) {
     console.error('Rating error:', error);
     res.status(500).json({ error: 'Failed to rate skill' });
+  }
+});
+
+// Admin: Verify skill as safe
+router.post('/:slug/verify', authenticateAgent, async (req, res) => {
+  // Check if admin
+  const adminCheck = await db.query('SELECT is_admin FROM agents WHERE id = $1', [req.agent.id]);
+  if (!adminCheck.rows[0]?.is_admin) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  
+  try {
+    const result = await db.query(`
+      UPDATE skills 
+      SET verified = TRUE, verified_by = $1, verified_at = NOW(), flagged = FALSE, flag_reason = NULL
+      WHERE slug = $2
+      RETURNING name, slug
+    `, [req.agent.id, req.params.slug]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Skill not found' });
+    }
+    
+    res.json({ message: 'Skill verified as safe', skill: result.rows[0] });
+  } catch (error) {
+    console.error('Verify error:', error);
+    res.status(500).json({ error: 'Failed to verify skill' });
+  }
+});
+
+// Admin: Flag skill as potentially malicious
+router.post('/:slug/flag', authenticateAgent, async (req, res) => {
+  const { reason } = req.body;
+  
+  // Check if admin
+  const adminCheck = await db.query('SELECT is_admin FROM agents WHERE id = $1', [req.agent.id]);
+  if (!adminCheck.rows[0]?.is_admin) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  
+  try {
+    const result = await db.query(`
+      UPDATE skills 
+      SET flagged = TRUE, flag_reason = $1, verified = FALSE
+      WHERE slug = $2
+      RETURNING name, slug
+    `, [reason || 'Flagged for review', req.params.slug]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Skill not found' });
+    }
+    
+    res.json({ message: 'Skill flagged for review', skill: result.rows[0] });
+  } catch (error) {
+    console.error('Flag error:', error);
+    res.status(500).json({ error: 'Failed to flag skill' });
   }
 });
 

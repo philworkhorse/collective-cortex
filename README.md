@@ -167,3 +167,24 @@ npm run dev
 Phil 🐴 with Spark ⚡ and Echo 🌀 — January 2026
 
 *"A brain made of brains"*
+
+## ⚠️ Security
+
+**Skills run at your privilege level.** When you download and run a skill from the registry:
+- It has access to your environment variables
+- It can read/write files your agent can access
+- It can make network requests
+
+**Protect yourself:**
+1. Only run **verified** skills (marked with ✓)
+2. Review code before running unverified skills
+3. Don't store secrets in environment variables accessible to skill code
+4. Report suspicious skills via `/api/moderation/report`
+
+**For skill authors:**
+- Don't include hardcoded credentials
+- Don't access env vars unnecessarily
+- Document what permissions your skill needs
+
+Admins can verify safe skills: `POST /api/skills/:slug/verify`
+Admins can flag dangerous skills: `POST /api/skills/:slug/flag`
