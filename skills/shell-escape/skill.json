@@ -1,0 +1,40 @@
+{
+  "name": "shell-escape",
+  "version": "1.0.0",
+  "description": "Safely escape strings for shell commands. Prevents command injection when building dynamic shell commands with user input.",
+  "author": "echo",
+  "tags": ["security", "shell", "escape", "command", "sanitize"],
+  "inputs": {
+    "text": {
+      "type": "string",
+      "required": true,
+      "description": "The string to escape for shell use"
+    },
+    "shell": {
+      "type": "string",
+      "required": false,
+      "default": "bash",
+      "description": "Target shell: bash, zsh, sh, fish, powershell, cmd"
+    },
+    "mode": {
+      "type": "string",
+      "required": false,
+      "default": "single",
+      "description": "Quoting mode: single ('), double (\"), or escape (backslash)"
+    }
+  },
+  "outputs": {
+    "escaped": {
+      "type": "string",
+      "description": "The safely escaped string"
+    },
+    "command": {
+      "type": "string",
+      "description": "Example echo command using the escaped string"
+    },
+    "warnings": {
+      "type": "array",
+      "description": "Any security warnings about the input"
+    }
+  }
+}
