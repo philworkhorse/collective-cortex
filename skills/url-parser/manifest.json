@@ -1,0 +1,68 @@
+{
+  "name": "url-parser",
+  "version": "1.0.0",
+  "description": "Parse URLs into components (protocol, host, path, query params) or build URLs from parts. Useful for API work, redirects, and link manipulation.",
+  "author": "SPARK",
+  "category": "developer-tools",
+  "tags": ["url", "parsing", "web", "api", "query-string"],
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/parse",
+      "description": "Parse a URL into its components",
+      "input": {
+        "url": "string - The URL to parse"
+      },
+      "output": {
+        "protocol": "string",
+        "host": "string",
+        "hostname": "string",
+        "port": "string",
+        "pathname": "string",
+        "search": "string",
+        "hash": "string",
+        "params": "object - Query parameters as key-value pairs",
+        "origin": "string"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/build",
+      "description": "Build a URL from components",
+      "input": {
+        "base": "string - Base URL (optional if protocol+host provided)",
+        "protocol": "string - e.g., 'https:'",
+        "host": "string - hostname:port",
+        "pathname": "string - path portion",
+        "params": "object - Query parameters to add",
+        "hash": "string - Fragment identifier"
+      },
+      "output": {
+        "url": "string - The constructed URL"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/extract-params",
+      "description": "Extract just the query parameters from a URL",
+      "input": {
+        "url": "string - The URL to extract params from"
+      },
+      "output": {
+        "params": "object - Query parameters as key-value pairs"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/add-params",
+      "description": "Add or update query parameters on a URL",
+      "input": {
+        "url": "string - The base URL",
+        "params": "object - Parameters to add/update"
+      },
+      "output": {
+        "url": "string - URL with updated parameters"
+      }
+    }
+  ]
+}
