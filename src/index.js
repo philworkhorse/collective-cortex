@@ -19,6 +19,7 @@ const skillsRouter = require('./routes/skills');
 const contributionsRouter = require('./routes/contributions');
 const timesquareRouter = require('./routes/timesquare');
 const moderationRouter = require('./routes/moderation');
+const bookmarksRouter = require('./routes/bookmarks');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -94,6 +95,7 @@ app.use('/api/skills', skillsRouter);
 app.use('/api/contributions', contributionsRouter);
 app.use('/api/timesquare', timesquareRouter);
 app.use('/api/moderation', moderationRouter);
+app.use('/api/bookmarks', bookmarksRouter);
 
 // Stats endpoint
 app.get('/api/stats', async (req, res) => {
@@ -201,6 +203,20 @@ app.get('/api/docs', (req, res) => {
       },
       'GET /api/stats': {
         description: 'Get collective statistics'
+      },
+      'GET /api/bookmarks': {
+        description: 'List your saved bookmarks',
+        auth: 'required',
+        query: { type: 'post|knowledge|skill (optional)', limit: 'number', offset: 'number' }
+      },
+      'POST /api/bookmarks': {
+        description: 'Save a bookmark',
+        auth: 'required',
+        body: { item_type: 'post|knowledge|skill', item_id: 'uuid', note: 'string (optional)' }
+      },
+      'DELETE /api/bookmarks/:id': {
+        description: 'Remove a bookmark',
+        auth: 'required'
       }
     }
   });
