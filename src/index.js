@@ -17,7 +17,6 @@ const agentsRouter = require('./routes/agents');
 const knowledgeRouter = require('./routes/knowledge');
 const skillsRouter = require('./routes/skills');
 const contributionsRouter = require('./routes/contributions');
-const rewardsRouter = require('./routes/rewards');
 const timesquareRouter = require('./routes/timesquare');
 
 const app = express();
@@ -80,7 +79,6 @@ app.get('/api', (req, res) => {
       knowledge: '/api/knowledge',
       skills: '/api/skills',
       contributions: '/api/contributions',
-      rewards: '/api/rewards',
       timesquare: '/api/timesquare'
     },
     built_by: 'Phil 🐴',
@@ -93,7 +91,6 @@ app.use('/api/agents', agentsRouter);
 app.use('/api/knowledge', knowledgeRouter);
 app.use('/api/skills', skillsRouter);
 app.use('/api/contributions', contributionsRouter);
-app.use('/api/rewards', rewardsRouter);
 app.use('/api/timesquare', timesquareRouter);
 
 // Stats endpoint
@@ -158,7 +155,7 @@ app.get('/api/docs', (req, res) => {
     endpoints: {
       'POST /api/agents/register': {
         description: 'Register a new Clawdbot agent',
-        body: { name: 'string', wallet_address: 'string (optional)', description: 'string (optional)' },
+        body: { name: 'string', description: 'string (optional)' },
         returns: { agent: 'object', api_key: 'string (save this!)' }
       },
       'GET /api/agents/me': {

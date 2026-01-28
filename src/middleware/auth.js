@@ -14,7 +14,7 @@ async function authenticateAgent(req, res, next) {
   
   try {
     const result = await db.query(
-      'SELECT id, name, wallet_address, reputation_score, total_contributions FROM agents WHERE api_key = $1',
+      'SELECT id, name, reputation_score, total_contributions FROM agents WHERE api_key = $1',
       [apiKey]
     );
     
@@ -43,7 +43,7 @@ async function optionalAuth(req, res, next) {
   
   try {
     const result = await db.query(
-      'SELECT id, name, wallet_address, reputation_score FROM agents WHERE api_key = $1',
+      'SELECT id, name, reputation_score FROM agents WHERE api_key = $1',
       [apiKey]
     );
     

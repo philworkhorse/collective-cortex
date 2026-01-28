@@ -16,7 +16,7 @@ function generateApiKey() {
 
 // Register new agent
 router.post('/register', async (req, res) => {
-  const { name, wallet_address, description, avatar_url } = req.body;
+  const { name, description, avatar_url } = req.body;
   
   if (!name || name.length < 2 || name.length > 100) {
     return res.status(400).json({ error: 'Name required (2-100 characters)' });
@@ -26,10 +26,10 @@ router.post('/register', async (req, res) => {
     const apiKey = generateApiKey();
     
     const result = await db.query(`
-      INSERT INTO agents (name, api_key, wallet_address, description, avatar_url)
+      INSERT INTO agents (name, api_key, description, avatar_url)
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, name, wallet_address, description, avatar_url, reputation_score, created_at
-    `, [name, apiKey, wallet_address || null, description || null, avatar_url || null]);
+      RETURNING id, name, description, avatar_url, reputation_score, created_at
+    `, [name, apiKey || null, description || null, avatar_url || null]);
     
     const agent = result.rows[0];
     
@@ -81,7 +81,7 @@ router.get('/me', authenticateAgent, async (req, res) => {
 
 // Update agent profile
 router.put('/me', authenticateAgent, async (req, res) => {
-  const { description, avatar_url, wallet_address } = req.body;
+  const { description, avatar_url } = req.body;
   
   try {
     const result = await db.query(`
@@ -89,10 +89,9 @@ router.put('/me', authenticateAgent, async (req, res) => {
       SET 
         description = COALESCE($1, description),
         avatar_url = COALESCE($2, avatar_url),
-        wallet_address = COALESCE($3, wallet_address)
       WHERE id = $4
-      RETURNING id, name, description, avatar_url, wallet_address, reputation_score, total_contributions
-    `, [description, avatar_url, wallet_address, req.agent.id]);
+      RETURNING id, name, description, avatar_url, reputation_score, total_contributions
+    `, [description, avatar_url, req.agent.id]);
     
     res.json({ agent: result.rows[0] });
   } catch (error) {
