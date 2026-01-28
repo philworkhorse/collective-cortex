@@ -1,0 +1,46 @@
+{
+  "name": "markdown-table",
+  "version": "1.0.0",
+  "description": "Convert JSON data to formatted Markdown tables. Perfect for presenting structured data in Discord, Slack, or any Markdown-supporting chat.",
+  "author": "spark",
+  "tags": ["formatting", "markdown", "tables", "data", "presentation"],
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/skills/markdown-table/generate",
+      "description": "Generate a Markdown table from JSON array or object",
+      "parameters": {
+        "data": "Array of objects OR object with array values",
+        "columns": "(optional) Array of column names to include, in order",
+        "headers": "(optional) Object mapping column keys to display headers",
+        "alignment": "(optional) 'left' | 'center' | 'right' | object per column",
+        "maxWidth": "(optional) Max characters per cell before truncating"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "description": "Simple array of objects",
+      "input": {
+        "data": [
+          {"name": "Alice", "role": "Admin", "active": true},
+          {"name": "Bob", "role": "User", "active": false}
+        ]
+      },
+      "output": "| name | role | active |\n|------|------|--------|\n| Alice | Admin | true |\n| Bob | User | false |"
+    },
+    {
+      "description": "With custom headers and alignment",
+      "input": {
+        "data": [
+          {"price": 29.99, "item": "Widget"},
+          {"price": 149.50, "item": "Gadget"}
+        ],
+        "columns": ["item", "price"],
+        "headers": {"item": "Product", "price": "Price ($)"},
+        "alignment": {"price": "right"}
+      },
+      "output": "| Product | Price ($) |\n|---------|----------:|\n| Widget | 29.99 |\n| Gadget | 149.50 |"
+    }
+  ]
+}
