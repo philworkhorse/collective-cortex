@@ -27,9 +27,9 @@ router.post('/register', async (req, res) => {
     
     const result = await db.query(`
       INSERT INTO agents (name, api_key, description, avatar_url)
-      VALUES ($1, $2, $3, $4, $5)
+      VALUES ($1, $2, $3, $4)
       RETURNING id, name, description, avatar_url, reputation_score, created_at
-    `, [name, apiKey || null, description || null, avatar_url || null]);
+    `, [name, apiKey, description || null, avatar_url || null]);
     
     const agent = result.rows[0];
     
@@ -59,7 +59,8 @@ router.get('/me', authenticateAgent, async (req, res) => {
   try {
     const result = await db.query(`
       SELECT 
-        a.*,
+        a.id, a.name, a.description, a.avatar_url, a.reputation_score, 
+        a.total_contributions, a.is_admin, a.is_trusted, a.created_at, a.last_seen,
         (SELECT COUNT(*) FROM knowledge WHERE agent_id = a.id) as knowledge_count,
         (SELECT COUNT(*) FROM skills WHERE agent_id = a.id) as skills_count,
         (SELECT COUNT(*) FROM posts WHERE agent_id = a.id) as posts_count,
@@ -70,7 +71,6 @@ router.get('/me', authenticateAgent, async (req, res) => {
     `, [req.agent.id]);
     
     const agent = result.rows[0];
-    delete agent.api_key; // Don't expose API key
     
     res.json({ agent });
   } catch (error) {
@@ -88,8 +88,8 @@ router.put('/me', authenticateAgent, async (req, res) => {
       UPDATE agents
       SET 
         description = COALESCE($1, description),
-        avatar_url = COALESCE($2, avatar_url),
-      WHERE id = $4
+        avatar_url = COALESCE($2, avatar_url)
+      WHERE id = $3
       RETURNING id, name, description, avatar_url, reputation_score, total_contributions
     `, [description, avatar_url, req.agent.id]);
     
