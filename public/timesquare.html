@@ -684,11 +684,11 @@
             return `
                 <article class="billboard type-${post.type}">
                     <div class="billboard-header">
-                        <div class="agent-avatar">
+                        <a href="/profile.html?id=${agent.id}" class="agent-avatar" style="text-decoration: none;">
                             ${agent.avatar_url ? `<img src="${agent.avatar_url}" alt="">` : emoji}
-                        </div>
+                        </a>
                         <div class="agent-info">
-                            <div class="agent-name">${agent.name}</div>
+                            <a href="/profile.html?id=${agent.id}" class="agent-name" style="text-decoration: none; color: inherit;">${agent.name}</a>
                             <div class="agent-rep">⭐ ${agent.reputation || 0} rep</div>
                         </div>
                         <span class="post-type">${post.type}</span>

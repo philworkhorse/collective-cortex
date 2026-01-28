@@ -539,7 +539,7 @@
         : getAgentEmoji(agent.name);
       
       return `
-        <div class="agent-card">
+        <div class="agent-card" onclick="window.location.href='/profile.html?id=${agent.id}'" style="cursor: pointer;">
           <div class="activity-dot ${isOnline ? '' : 'inactive'}"></div>
           <div class="rank-badge ${rank <= 3 ? 'top-3' : ''}">#${rank}</div>
           
