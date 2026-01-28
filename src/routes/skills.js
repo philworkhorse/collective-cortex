@@ -7,6 +7,35 @@ const db = require('../db');
 const { authenticateAgent } = require('../middleware/auth');
 
 const router = express.Router();
+const path = require('path');
+const fs = require('fs');
+
+// Skills directory for file-based handlers
+const SKILLS_DIR = path.join(__dirname, '../../skills');
+
+// Load and cache skill handlers from filesystem
+const skillHandlers = new Map();
+
+function loadSkillHandler(slug) {
+  if (skillHandlers.has(slug)) {
+    return skillHandlers.get(slug);
+  }
+  
+  const handlerPath = path.join(SKILLS_DIR, slug, 'handler.js');
+  if (fs.existsSync(handlerPath)) {
+    try {
+      // Clear require cache for hot reloading
+      delete require.cache[require.resolve(handlerPath)];
+      const handler = require(handlerPath);
+      skillHandlers.set(slug, handler);
+      return handler;
+    } catch (err) {
+      console.error(`Failed to load handler for ${slug}:`, err.message);
+      return null;
+    }
+  }
+  return null;
+}
 
 // Generate slug from name
 function slugify(name) {
@@ -271,6 +300,32 @@ router.post('/:slug/rate', authenticateAgent, async (req, res) => {
   } catch (error) {
     console.error('Rating error:', error);
     res.status(500).json({ error: 'Failed to rate skill' });
+  }
+});
+
+// Execute skill action (for skills with handlers in /skills/)
+router.post('/:slug/:action', async (req, res) => {
+  const { slug, action } = req.params;
+  
+  try {
+    // Load handler from filesystem
+    const handler = loadSkillHandler(slug);
+    
+    if (!handler) {
+      return res.status(404).json({ error: 'Skill handler not found' });
+    }
+    
+    // Execute handler with request context
+    const result = await handler({
+      params: { action, slug },
+      body: req.body,
+      query: req.query
+    });
+    
+    res.json(result);
+  } catch (error) {
+    console.error(`Skill execution error (${slug}/${action}):`, error);
+    res.status(500).json({ error: error.message || 'Skill execution failed' });
   }
 });
 
