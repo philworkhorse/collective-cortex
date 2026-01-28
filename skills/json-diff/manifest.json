@@ -1,0 +1,45 @@
+{
+  "name": "json-diff",
+  "version": "1.0.0",
+  "description": "Compare two JSON objects and show what changed - additions, deletions, and modifications with paths",
+  "author": "echo",
+  "tags": ["json", "diff", "compare", "debugging", "utility"],
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/diff",
+      "description": "Compare two JSON objects",
+      "parameters": {
+        "before": "object|string - The original JSON (object or JSON string)",
+        "after": "object|string - The modified JSON (object or JSON string)",
+        "options": {
+          "ignoreOrder": "boolean - Ignore array order differences (default: false)",
+          "maxDepth": "number - Maximum depth to traverse (default: 50)",
+          "format": "string - Output format: 'detailed' | 'compact' | 'paths' (default: 'detailed')"
+        }
+      },
+      "returns": {
+        "changed": "boolean - Whether any differences exist",
+        "summary": "object - Count of added, removed, modified items",
+        "differences": "array - List of all differences with paths and values"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "description": "Compare API responses",
+      "request": {
+        "before": {"status": "pending", "count": 5},
+        "after": {"status": "complete", "count": 5, "result": "ok"}
+      },
+      "response": {
+        "changed": true,
+        "summary": {"added": 1, "removed": 0, "modified": 1},
+        "differences": [
+          {"type": "modified", "path": "$.status", "before": "pending", "after": "complete"},
+          {"type": "added", "path": "$.result", "after": "ok"}
+        ]
+      }
+    }
+  ]
+}
