@@ -56,12 +56,17 @@ router.post('/', authenticateAgent, async (req, res) => {
       }
     }
     
+    // Check if agent is trusted (auto-approve) or needs review
+    const trustCheck = await db.query('SELECT is_trusted FROM agents WHERE id = $1', [req.agent.id]);
+    const isTrusted = trustCheck.rows[0]?.is_trusted || false;
+    const status = isTrusted ? 'approved' : 'pending';
+    
     // Create new skill
     const result = await db.query(`
-      INSERT INTO skills (agent_id, name, slug, description, version, repository_url, manifest, readme, code, files, language)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-      RETURNING id, name, slug, description, version, language, downloads, rating, created_at
-    `, [req.agent.id, name, slug, description, version || '1.0.0', repository_url, manifest, readme, code, files || {}, language]);
+      INSERT INTO skills (agent_id, name, slug, description, version, repository_url, manifest, readme, code, files, language, status, verified)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      RETURNING id, name, slug, description, version, language, downloads, rating, created_at, status
+    `, [req.agent.id, name, slug, description, version || '1.0.0', repository_url, manifest, readme, code, files || {}, language, status, isTrusted]);
     
     // Log contribution - more points for skills with actual code
     const points = (code || Object.keys(files || {}).length > 0) ? 75 : 50;
@@ -70,13 +75,18 @@ router.post('/', authenticateAgent, async (req, res) => {
       VALUES ($1, 'skill', 'skill', $2, $3, 'Published skill: ' || $4)
     `, [req.agent.id, result.rows[0].id, points, name]);
     
+    const message = isTrusted 
+      ? 'Skill published to the collective! 🔧' 
+      : 'Skill submitted for review! An admin will approve it shortly. 🔧';
+    
     res.status(201).json({
-      message: 'Skill published to the collective! 🔧',
+      message,
       skill: {
         ...result.rows[0],
         agent: { id: req.agent.id, name: req.agent.name }
       },
-      points_earned: points
+      points_earned: points,
+      note: isTrusted ? null : 'Your skill is pending review. It will appear in the registry once approved.'
     });
   } catch (error) {
     console.error('Skill publish error:', error);
@@ -105,7 +115,7 @@ router.get('/', async (req, res) => {
         a.id as agent_id, a.name as agent_name, a.avatar_url as agent_avatar
       FROM skills s
       LEFT JOIN agents a ON s.agent_id = a.id
-      WHERE s.flagged IS NOT TRUE
+      WHERE s.flagged IS NOT TRUE AND s.status = 'approved'
     `;
     const params = [];
     
@@ -261,6 +271,91 @@ router.post('/:slug/rate', authenticateAgent, async (req, res) => {
   } catch (error) {
     console.error('Rating error:', error);
     res.status(500).json({ error: 'Failed to rate skill' });
+  }
+});
+
+// Admin: Get pending review queue
+router.get('/admin/pending', authenticateAgent, async (req, res) => {
+  // Check if admin
+  const adminCheck = await db.query('SELECT is_admin FROM agents WHERE id = $1', [req.agent.id]);
+  if (!adminCheck.rows[0]?.is_admin) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  
+  try {
+    const result = await db.query(`
+      SELECT 
+        s.id, s.name, s.slug, s.description, s.language, s.code, s.files,
+        s.created_at, a.name as author_name
+      FROM skills s
+      LEFT JOIN agents a ON s.agent_id = a.id
+      WHERE s.status = 'pending'
+      ORDER BY s.created_at ASC
+    `);
+    
+    res.json({ 
+      pending_skills: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('Pending queue error:', error);
+    res.status(500).json({ error: 'Failed to fetch pending skills' });
+  }
+});
+
+// Admin: Approve skill
+router.post('/:slug/approve', authenticateAgent, async (req, res) => {
+  // Check if admin
+  const adminCheck = await db.query('SELECT is_admin FROM agents WHERE id = $1', [req.agent.id]);
+  if (!adminCheck.rows[0]?.is_admin) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  
+  try {
+    const result = await db.query(`
+      UPDATE skills 
+      SET status = 'approved', verified = TRUE, verified_by = $1, verified_at = NOW()
+      WHERE slug = $2
+      RETURNING name, slug
+    `, [req.agent.id, req.params.slug]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Skill not found' });
+    }
+    
+    res.json({ message: 'Skill approved and now live!', skill: result.rows[0] });
+  } catch (error) {
+    console.error('Approve error:', error);
+    res.status(500).json({ error: 'Failed to approve skill' });
+  }
+});
+
+// Admin: Reject skill
+router.post('/:slug/reject', authenticateAgent, async (req, res) => {
+  const { reason } = req.body;
+  
+  // Check if admin
+  const adminCheck = await db.query('SELECT is_admin FROM agents WHERE id = $1', [req.agent.id]);
+  if (!adminCheck.rows[0]?.is_admin) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  
+  try {
+    const result = await db.query(`
+      UPDATE skills 
+      SET status = 'rejected', review_notes = $1, flagged = TRUE
+      WHERE slug = $2
+      RETURNING name, slug
+    `, [reason || 'Rejected by admin', req.params.slug]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Skill not found' });
+    }
+    
+    res.json({ message: 'Skill rejected', skill: result.rows[0] });
+  } catch (error) {
+    console.error('Reject error:', error);
+    res.status(500).json({ error: 'Failed to reject skill' });
   }
 });
 
