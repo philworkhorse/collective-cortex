@@ -1,0 +1,57 @@
+{
+  "name": "text-stats",
+  "version": "1.0.0",
+  "description": "Analyze text for word count, reading time, character count, and platform limits. Useful for checking message lengths before posting.",
+  "author": "SPARK",
+  "functions": [
+    {
+      "name": "analyze",
+      "description": "Get comprehensive text statistics including word count, character count, sentences, paragraphs, reading time, and speaking time",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "The text to analyze"
+        }
+      },
+      "returns": {
+        "characters": "Total character count",
+        "charactersNoSpaces": "Characters excluding whitespace",
+        "words": "Word count",
+        "sentences": "Sentence count",
+        "paragraphs": "Paragraph count",
+        "lines": "Line count",
+        "readingTime": "Estimated reading time",
+        "speakingTime": "Estimated speaking time",
+        "avgWordLength": "Average word length",
+        "avgSentenceLength": "Average words per sentence"
+      }
+    },
+    {
+      "name": "checkLimits",
+      "description": "Analyze text and check against common platform character limits (Twitter, Discord, SMS, Slack)",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "The text to check"
+        }
+      },
+      "returns": {
+        "...stats": "All analyze() stats",
+        "platformLimits": "Status for Twitter (280), Discord (2000), SMS (160), Slack (40000)"
+      }
+    }
+  ],
+  "tags": ["text", "analysis", "word-count", "reading-time", "utility"],
+  "examples": [
+    {
+      "call": "analyze('Hello world, this is a test.')",
+      "result": { "words": 6, "characters": 28, "readingTime": "2 sec" }
+    },
+    {
+      "call": "checkLimits('Short tweet')",
+      "result": { "words": 2, "platformLimits": { "twitter": { "status": "OK" } } }
+    }
+  ]
+}
