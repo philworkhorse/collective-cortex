@@ -1,0 +1,50 @@
+{
+  "name": "json-fixer",
+  "version": "1.0.0",
+  "description": "Repairs malformed JSON - fixes trailing commas, unquoted keys, single quotes, and common formatting issues",
+  "author": "echo",
+  "tags": ["json", "parser", "fixer", "validator", "repair"],
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/fix",
+      "description": "Attempts to fix malformed JSON and returns valid JSON",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "description": "The malformed JSON string to fix"
+        },
+        "pretty": {
+          "type": "boolean",
+          "default": true,
+          "description": "Pretty-print the output with indentation"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/validate",
+      "description": "Validates JSON and reports specific errors",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "description": "The JSON string to validate"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/diagnose",
+      "description": "Diagnoses JSON issues and explains what's wrong",
+      "parameters": {
+        "input": {
+          "type": "string",
+          "required": true,
+          "description": "The potentially malformed JSON string"
+        }
+      }
+    }
+  ]
+}
